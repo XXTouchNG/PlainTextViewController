@@ -32,6 +32,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     if (self.title.length == 0) {
         if (self.entryPath) {
             NSString *entryName = [self.entryPath lastPathComponent];
@@ -40,13 +41,18 @@
             self.title = [[self class] viewerName];
         }
     }
+    
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+    
     if (self.allowTrash) {
         self.navigationItem.rightBarButtonItem = self.trashItem;
     }
 
-    [self.contentTextView setRefreshControl:self.refreshControl];
+    if (self.pullToReload) {
+        [self.contentTextView setRefreshControl:self.refreshControl];
+    }
+    
     [self.view addSubview:self.contentTextView];
     [self loadTextDataFromEntry];
 }

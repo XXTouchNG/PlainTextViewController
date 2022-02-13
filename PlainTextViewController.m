@@ -7,16 +7,20 @@
 //
 
 #import "PlainTextViewController.h"
+#import "ICTextView.h"
 
-@interface PlainTextViewController ()
+@interface PlainTextViewController () <UISearchResultsUpdating, UISearchBarDelegate>
 
-@property (nonatomic, strong) UITextView *contentTextView;
+@property (nonatomic, strong) ICTextView *contentTextView;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
 @property (nonatomic, strong) UIBarButtonItem *trashItem;
+@property (nonatomic, strong) UISearchController *searchController;
 
 @end
 
-@implementation PlainTextViewController
+@implementation PlainTextViewController {
+    BOOL _shouldEndEditing;
+}
 @synthesize entryPath = _entryPath;
 
 + (NSString *)viewerName {
@@ -26,6 +30,7 @@
 - (instancetype)initWithPath:(NSString *)path {
     if (self = [super init]) {
         _entryPath = path;
+        _shouldEndEditing = NO;
     }
     return self;
 }
@@ -43,10 +48,26 @@
     }
     
     self.view.backgroundColor = [UIColor systemBackgroundColor];
+    
+    self.searchController = ({
+        UISearchController *searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+        searchController.searchResultsUpdater = self;
+        searchController.obscuresBackgroundDuringPresentation = NO;
+        searchController.hidesNavigationBarDuringPresentation = YES;
+        searchController.searchBar.returnKeyType = UIReturnKeyNext;
+        searchController.searchBar.delegate = self;
+        searchController;
+    });
+    
     self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
     
     if (self.allowTrash) {
         self.navigationItem.rightBarButtonItem = self.trashItem;
+    }
+    
+    if (self.allowSearch) {
+        self.navigationItem.hidesSearchBarWhenScrolling = YES;
+        self.navigationItem.searchController = self.searchController;
     }
 
     if (self.pullToReload) {
@@ -55,6 +76,7 @@
     
     [self.view addSubview:self.contentTextView];
     [self loadTextDataFromEntry];
+    [self registerKeyboardNotifications];
 }
 
 - (void)reloadTextDataFromEntry:(UIRefreshControl *)sender {
@@ -117,7 +139,7 @@
 
 - (UITextView *)contentTextView {
     if (!_contentTextView) {
-        UITextView *logTextView = [[UITextView alloc] initWithFrame:self.view.bounds];
+        ICTextView *logTextView = [[ICTextView alloc] initWithFrame:self.view.bounds];
         logTextView.selectable = YES;
         logTextView.scrollsToTop = YES;
         logTextView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -131,6 +153,10 @@
         logTextView.smartDashesType = UITextSmartDashesTypeNo;
         logTextView.smartQuotesType = UITextSmartQuotesTypeNo;
         logTextView.smartInsertDeleteType = UITextSmartInsertDeleteTypeNo;
+        logTextView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentAutomatic;
+        logTextView.searchOptions = NSRegularExpressionCaseInsensitive;
+        logTextView.circularSearch = YES;
+        logTextView.scrollPosition = ICTextViewScrollPositionMiddle;
         _contentTextView = logTextView;
     }
     return _contentTextView;
@@ -150,6 +176,55 @@
         _trashItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(trashItemTapped:)];
     }
     return _trashItem;
+}
+
+- (void)registerKeyboardNotifications {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(updateTextViewInsetsWithKeyboardNotification:)
+                                                 name:UIKeyboardWillShowNotification
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(updateTextViewInsetsWithKeyboardNotification:)
+                                                 name:UIKeyboardWillHideNotification
+                                               object:nil];
+}
+
+- (void)updateTextViewInsetsWithKeyboardNotification:(NSNotification *)notification
+{
+    UIEdgeInsets newInsets = UIEdgeInsetsZero;
+    if (notification)
+    {
+        CGRect keyboardFrame;
+        [[notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardFrame];
+        keyboardFrame = [self.view convertRect:keyboardFrame fromView:nil];
+        newInsets.bottom = self.view.frame.size.height - keyboardFrame.origin.y;
+    }
+    UITextView *textView = self.contentTextView;
+    textView.contentInset = newInsets;
+    textView.scrollIndicatorInsets = newInsets;
+}
+
+#pragma mark - UISearchResultsUpdating
+
+- (void)doNextSearch {
+    [self.contentTextView scrollToString:self.searchController.searchBar.text searchDirection:ICTextViewSearchDirectionForward];
+}
+
+- (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
+    [self doNextSearch];
+}
+
+- (BOOL)searchBarShouldEndEditing:(UISearchBar *)searchBar {
+    return _shouldEndEditing;
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    _shouldEndEditing = YES;
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    _shouldEndEditing = NO;
+    [self doNextSearch];
 }
 
 #pragma mark -

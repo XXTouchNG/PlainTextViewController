@@ -5,7 +5,9 @@ A simple plain text viewer in Objective-C.
 ## Usage
 
 ```objective-c
-PlainTextViewController *c = [[PlainTextViewController alloc] initWithPath:aPlainTextFilePath];
-c.allowTrash = NO;
-[aNavigationController pushViewController:c animated:YES];
+PlainTextViewController *ctrl = [[PlainTextViewController alloc] initWithPath:[[NSBundle mainBundle] pathForResource:@"passwd" ofType:@""]];
+ctrl.pullToReload = YES;
+ctrl.allowSearch = YES;
+UINavigationController *navCtrl = [[UINavigationController alloc] initWithRootViewController:ctrl];
+[self presentViewController:navCtrl animated:YES completion:nil];
 ```

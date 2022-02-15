@@ -874,6 +874,14 @@ NS_INLINE BOOL ICCGFloatEqualOnScreen(CGFloat f1, CGFloat f2)
     }
 #endif
     
+    {
+        UIEdgeInsets safeAreaInset = self.safeAreaInsets;
+        contentInset.top += safeAreaInset.top;
+        contentInset.bottom += safeAreaInset.bottom;
+        contentInset.left += safeAreaInset.left;
+        contentInset.right += safeAreaInset.right;
+    }
+    
     return contentInset;
 }
 

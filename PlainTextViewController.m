@@ -197,7 +197,7 @@
         CGRect keyboardFrame;
         [[notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardFrame];
         keyboardFrame = [self.view convertRect:keyboardFrame fromView:nil];
-        newInsets.bottom = self.view.frame.size.height - keyboardFrame.origin.y;
+        newInsets.bottom = [self.view bounds].size.height - keyboardFrame.origin.y - self.view.safeAreaInsets.bottom;
     }
     UITextView *textView = self.contentTextView;
     textView.contentInset = newInsets;

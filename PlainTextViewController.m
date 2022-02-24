@@ -24,7 +24,7 @@
 @synthesize entryPath = _entryPath;
 
 + (NSString *)viewerName {
-    return @"Text Viewer";
+    return NSLocalizedString(@"Text Viewer", @"PlainTextViewController");
 }
 
 - (instancetype)initWithPath:(NSString *)path {
@@ -124,11 +124,11 @@
 }
 
 - (void)trashItemTapped:(UIBarButtonItem *)sender {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Confirm" message:[NSString stringWithFormat:@"Do you want to clear this log file \"%@\"?", [self.entryPath lastPathComponent]] preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *_Nonnull action) {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Confirm", @"PlainTextViewController") message:[NSString stringWithFormat:NSLocalizedString(@"Do you want to clear this log file \"%@\"?", @"PlainTextViewController"), [self.entryPath lastPathComponent]] preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", @"PlainTextViewController") style:UIAlertActionStyleCancel handler:^(UIAlertAction *_Nonnull action) {
 
                       }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Confirm" style:UIAlertActionStyleDefault handler:^(UIAlertAction *_Nonnull action) {
+    [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Confirm", @"PlainTextViewController") style:UIAlertActionStyleDefault handler:^(UIAlertAction *_Nonnull action) {
                           [[NSData data] writeToFile:self.entryPath atomically:YES];
                           [self loadTextDataFromEntry];
                       }]];
